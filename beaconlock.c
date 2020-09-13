@@ -163,7 +163,9 @@ static int old_offset = 0;
                 if(hwtype == 2)
                 {
                     #ifndef WIDEBAND
+                    #ifndef PLUTO
                     rtlsetTunedQrgOffset(offset*10);
+                    #endif
                     #endif
                 }
                 

@@ -66,13 +66,14 @@ void init_fssb()
 	sprintf(fn, "fssb_wisdom2b");	// wisdom file for each capture rate
     
     int numofcpus = sysconf(_SC_NPROCESSORS_ONLN); // Get the number of logical CPUs.
+    #ifndef PLUTO
     if(numofcpus > 1)
     {
         printf("found %d cores, running FFT in multithreading mode\n",numofcpus);
         fftw_init_threads();
         fftw_plan_with_nthreads(numofcpus);
     }
-
+    #endif
 	fftw_import_wisdom_from_filename(fn);
   
     din   = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * NB_FFT_LENGTH);
@@ -102,8 +103,8 @@ int small_gaincorr_sdrplay = 1000;
 int ex=0;
 
 // info for one line
-double binline[NB_FFT_LENGTH / 2];
-double binline_shifted[NB_FFT_LENGTH / 2];
+double binline[NB_FFT_LENGTH ];
+double binline_shifted[NB_FFT_LENGTH ];
 
 void fssb_sample_processing(int16_t *xi, int16_t *xq, int numSamples)
 {
@@ -130,20 +131,29 @@ double real, imag;
             
             // now calculate the absolute level from I and Q values
             // and measure the max value
+            //for(int i=0; i<(NB_FFT_LENGTH/2); i++)
+           
             for(int i=0; i<(NB_FFT_LENGTH/2); i++)
             {
                 real = cpout[i][0];
                 imag = cpout[i][1];
-                binline[i] = sqrt((real * real) + (imag * imag));
+                binline[i+NB_FFT_LENGTH/2] = sqrt((real * real) + (imag * imag));
+            }
+            for(int i=NB_FFT_LENGTH/2; i<(NB_FFT_LENGTH); i++)
+            {
+                real = cpout[i][0];
+                imag = cpout[i][1];
+                binline[i-NB_FFT_LENGTH/2] = sqrt((real * real) + (imag * imag));
             }
             
+           
             // binline now has the absolute spectrum levels of one waterfall line with 10Hz resolution
             
             // make a correction by retuning and/or shifting the spectrum
             bcnLock(binline);
             
             // this fft has generated NB_FFT_LENGTH bins in cpout
-            #define DATASIZE ((NB_FFT_LENGTH/2)/NB_OVERSAMPLING)    // (180.000/2)/10 = 9000 final values
+            #define DATASIZE ((NB_FFT_LENGTH)/NB_OVERSAMPLING)    // (180.000/2)/10 = 9000 final values
             uint16_t wfsamp[DATASIZE];
             int idx = 0;
             int wfbins;
@@ -162,26 +172,26 @@ double real, imag;
             
             int corr = offqrg; // correction shift in 10Hz steps
             int corr_start = corr;
-            int corr_end = (NB_FFT_LENGTH/2) + corr;
+            int corr_end = (NB_FFT_LENGTH) + corr;
             if(corr_start < 0) corr_start = -corr_start;
-            if(corr_end >= (NB_FFT_LENGTH/2)) corr_end = (NB_FFT_LENGTH/2);
+            if(corr_end >= (NB_FFT_LENGTH)) corr_end = (NB_FFT_LENGTH);
             int corr_len = corr_end - corr_start;
 
             if(corr == 0)
             {
                 // no qrg correction
-                memcpy(&(binline_shifted[0]), &(binline[0]), sizeof(double) * NB_FFT_LENGTH / 2);
+                memcpy(&(binline_shifted[0]), &(binline[0]), sizeof(double) * NB_FFT_LENGTH );
             }
             else
             {
-                memset(&(binline_shifted[0]), 0, sizeof(double) * NB_FFT_LENGTH / 2);
+                memset(&(binline_shifted[0]), 0, sizeof(double) * NB_FFT_LENGTH );
                 if(corr > 0)
                     memcpy(&(binline_shifted[corr_start]), &(binline[0]), sizeof(double) * corr_len);
                 else
                     memcpy(&(binline_shifted[0]), &(binline[corr_start]), sizeof(double) * corr_len);
             }
 
-            for(wfbins=0; wfbins<(NB_FFT_LENGTH/2); wfbins+=NB_OVERSAMPLING)
+            for(wfbins=0; wfbins<(NB_FFT_LENGTH); wfbins+=NB_OVERSAMPLING)
             {
                 if(idx >= DATASIZE) break; // all wf pixels are filled
                 

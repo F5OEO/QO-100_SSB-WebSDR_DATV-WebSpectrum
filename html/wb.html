@@ -1351,6 +1351,20 @@ function drawOverlay()
 
     var ImageData = context.getImageData(0,0,width,height);
 
+    for(var i=0; i<height; i++)
+        {
+            // right part USB
+            for(var j=0; j<width/4;j++)
+            {
+                ImageData.data[((i*(width*4)) + (j*4) + 0)] = 0;
+                ImageData.data[((i*(width*4)) + (j*4) + 1)] = 0;
+                ImageData.data[((i*(width*4)) + (j*4) + 2)] = 0;
+                ImageData.data[((i*(width*4)) + (j*4) + 3)] = 50;
+            }
+            
+            
+        }
+
     if(vertmarker == 1)
     {
     

@@ -93,7 +93,7 @@ void ssbdemod(fftw_complex *cpout, int offset)
                     break;
                 }
                 SSB_UNLOCK(cli);
-                usleep(100);
+                usleep(100); 
             }
             
             pthread_t client_thread;
@@ -115,26 +115,39 @@ void *ssbdemod_thread(void *param)
         // SSB Demodulation
         // fmin and fmax are the minimum and maximum audio frequencies of interest
         int fmin = 0;
-        int fmax = 500;                     // 3,6 kHz max BW
+        int fmax = 600;                     // 3,6 kHz max BW
         int ifqrg = foffset[client] / 10;   // offset choosen by the user
+        
         ifqrg += ssbp[client].offset;       // and SDR correction offset
+        //fprintf(stderr,"QRG %d \n",ifqrg);
+        
         for (int i = fmin; i < fmax; i++)
         {
-            cin[client][i][0] = cpout[i+ifqrg][0];
-            cin[client][i][1] = cpout[i+ifqrg][1];
+            if((i+ifqrg)<NB_FFT_LENGTH/2)
+            {
+                cin[client][i][0] = cpout[i+ifqrg+NB_FFT_LENGTH/2][0];
+                cin[client][i][1] = cpout[i+ifqrg+NB_FFT_LENGTH/2][1];
+            }
+            else
+            {
+                cin[client][i][0] = cpout[i+ifqrg-NB_FFT_LENGTH/2][0];
+                cin[client][i][1] = cpout[i+ifqrg-NB_FFT_LENGTH/2][1];
+            }
+            
         }
         
         // NULL the negative frequencies, this eliminates the mirror image
         // (in case of LSB demodulation use this negative image and null the positive)
+        /*
         for (int i = (NB_FFT_LENGTH / 2); i < NB_FFT_LENGTH; i++)
         {
             cin[client][i][0] = 0;
             cin[client][i][1] = 0;
         }
-
+        */
         // with invers fft convert the spectrum back to samples
         fftw_execute(iplan[client]);
-
+        
         // and copy samples into the resulting buffer
         // we have NB_FFT_LENGTH usbsamples for 1/10s
         // fill a buffer for 1s
@@ -147,8 +160,9 @@ void *ssbdemod_thread(void *param)
             f=0;
             for(int i=0; i<MAX_CLIENTS; i++) max[i]=1;
         }
-        
+       
         for(int i=0; i<NB_FFT_LENGTH; i+=(NB_FFT_LENGTH/(AUDIO_RATE/10)))
+        
         {
             // scale to max. 16 bit
             double v = cout[client][i][0];
@@ -158,7 +172,7 @@ void *ssbdemod_thread(void *param)
             
             // filter and copy sample to audio sample buffer
             b16samples[client][(b16idx[client])++] = (int16_t)(v*maxcode/max[client]);
-
+            
             // reduce scaling slowly
             if(max[client] > 1) max[client]-=100;
         }
@@ -169,6 +183,7 @@ void *ssbdemod_thread(void *param)
             #ifdef SOUNDLOCAL
             write_pipe(FIFO_AUDIO, (unsigned char *)b16samples[client], AUDIO_RATE*2);
             #else
+            //fprintf(stderr,"======================= SEND AUDIO ========================\n");
             write_pipe(FIFO_AUDIOWEBSOCKET + client, (unsigned char *)b16samples[client], AUDIO_RATE*2);
             ws_send_audio();
             #endif

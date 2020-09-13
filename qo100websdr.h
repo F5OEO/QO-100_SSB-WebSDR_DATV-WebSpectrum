@@ -97,15 +97,17 @@
     // beginning at 10489,250 MHz with a range of 900kHz to 10490,150 MHz
     // the selection of a part of these data are done in the browser
     
-    // RX frequency of the left margin of the waterfall/spectrum in kHz
-    // the complete samples go from LEFT_MARGIN_QRG_KHZ to LEFT_MARGIN_QRG_KHZ+(WF_RANGE_HZ/1000)
-    #define LEFT_MARGIN_QRG_KHZ  10489250  
-    
     // width of the waterfall/spectrum in Hz
     // if modified: check the SSB and AUDIO rate assignments below, and
     // check if the default rates are integer parts (see below: SSB_RATE and AUDIO_RATE)
-    #define WF_RANGE_HZ 900000 
+    #define WF_RANGE_HZ 528000 
     
+    // RX frequency of the left margin of the waterfall/spectrum in kHz
+    // the complete samples go from LEFT_MARGIN_QRG_KHZ to LEFT_MARGIN_QRG_KHZ+(WF_RANGE_HZ/1000)
+    //#define LEFT_MARGIN_QRG_KHZ  10489250  
+    #define LEFT_MARGIN_QRG_KHZ  (10489745-WF_RANGE_HZ/2000)  
+    
+
     // Frequency of the CW Beacon which is used for automatic freq correction, in Hz
     #define CW_BEACON   10489500000
 
@@ -125,26 +127,12 @@
     #ifdef SDR_PLAY
         #define SR_MULTIPLIER   2   // default sample rate: 0.9 * 2 * 2 = 3.6M
     #elif PLUTO
-        #define SR_MULTIPLIER   2   // default sample rate: 0.9 * 2 * 2 = 3.6M
+        #define SR_MULTIPLIER   1   // default sample rate: 0.9 * 2 * 2 = 3.6M
     #else
         #define SR_MULTIPLIER   1   // default sample rate: 0.9 * 2 * 1 = 1.8M
     #endif
     
-    // check if multiplier are within range
-    #ifdef SDR_PLAY
-        #if (((WF_RANGE_HZ * 2 * SR_MULTIPLIER)<2000000) || ((WF_RANGE_HZ * 2 * SR_MULTIPLIER)>10000000))
-            #warning SDRplay: CHOOSE OTHER SR_MULTIPLIER
-        #endif
-    #elif PLUTO
-        #if (((WF_RANGE_HZ * 2 * SR_MULTIPLIER)<2000000) || ((WF_RANGE_HZ * 2 * SR_MULTIPLIER)>10000000))
-            #warning PLUTO: CHOOSE OTHER SR_MULTIPLIER
-        #endif
-    #else
-        #if (((WF_RANGE_HZ * 2 * SR_MULTIPLIER)<900000) || ((WF_RANGE_HZ * 2 * SR_MULTIPLIER)>2400000))
-            #warning RTLSDR: CHOOSE OTHER SR_MULTIPLIER
-        #endif
-    #endif
-
+    
     // calculated values
     // =================
 
@@ -152,8 +140,8 @@
 	// we use twice the bandwidth, so the FFT will return the requested bandwidth in the lower half of the FFT data
 	// the upper half (which contains the same bandwidth of below the tuner frequency) is not used to get a cleaner display
 	// (the WB monitor uses both halfs)
-	// we get data from the SDR with a rate of NB_SAMPLE_RATE
-    #define NB_SAMPLE_RATE     (WF_RANGE_HZ * 2)                // 900000*2= 1.800.000
+	// we get data from the SDR with a rate of NB_SAMPLE_RATE // 900000= 1.800.000
+    #define NB_SAMPLE_RATE     (WF_RANGE_HZ )                
     
     // SDR_SAMPLE_RATE is the SDRs internal sample rate
     // the SDRplay divides it in the proprietary driver, while
@@ -162,14 +150,14 @@
     
     // number of input and output data of the FFT
     // i.e.: 1.800.000 / 10 = 180.000 samples input and 180.000 bins FFT output, where 90.000 are used
-    // these 90.000 bins show the spectrum of 900kHz with a resolution of 10 Hz
-    #define NB_FFT_LENGTH   (NB_SAMPLE_RATE / NB_RESOLUTION)    // 1.800.000/10 = 180.000
+    // these 90.000 bins show the spectrum of 900kHz with a resolution of 10 Hz  // 1.800.000/10 = 180.000
+    #define NB_FFT_LENGTH   (NB_SAMPLE_RATE / NB_RESOLUTION )   
 
     // the FFT delivers NB_FFT_LENGTH/2 values (i.e.: 90.000 values with a resolution of 10 Hz/value)
     // we want to be able to display a lowest range of 150kHz (30.000 values) within 1500 pixel
     // this is 200Hz/Pixel
-    // the FFT gives us 10 Hz value, so we only need every 10th value, this is the oversampling
-    #define NB_OVERSAMPLING (15000 / WF_WIDTH)  // = 10
+    // the FFT gives us 10 Hz value, so we only need every 10th value, this is the oversampling // = 10
+    #define NB_OVERSAMPLING (15000 / WF_WIDTH)  
     
     // Hz per screen pixel
     // NB_OVERSAMPLING shows the FFT values per pixel, but one 
@@ -179,8 +167,8 @@
     // the AUDIO rate must be an integer part of NB_SAMPLE_RATE and must be <= 48k
     // recalculate and add values for non-standard ranges WF_RANGE_HZ
 
-    #if WF_RANGE_HZ == 150000
-        #define AUDIO_RATE 7500
+    #if WF_RANGE_HZ == 500000
+        #define AUDIO_RATE 5000
     #else
         #define AUDIO_RATE 8000 // use default rate if possible
     #endif

@@ -40,19 +40,19 @@ int read_config();
 
 char callsign[20] = "CALLSIGN";
 int64_t lnb_lo = 0;
-uint32_t lnb_crystal = DEFAULT_LNB_CRYSTAL;
+uint32_t lnb_crystal = 25000000;
 int32_t tuned_frequency = 739500000;
 int32_t lnb_multiplier = DEFAULT_LNB_MULTIPLIER;
-int32_t downmixer_outqrg = DEFAULT_DOWNMIXER_OUTQRG;
+int32_t downmixer_outqrg = 0;
 int32_t minitiouner_offset = 0;
 char mtip[20] = {"192.168.0.25"};
-char pluto_ip[20] = {"0"};
+char pluto_ip[20] = {"192.168.2.1"};
 int minitiouner_port = 6789;
 int minitiouner_local = 1;
 int websock_port = DEFAULT_WEBSOCK_PORT;
 int allowRemoteAccess = 1;
 int configrequest = 0;
-int retune_setup = 0;
+int retune_setup = 1;
 int tx_correction = 0;
 int icom_satmode = 0;
 
@@ -67,7 +67,7 @@ int ret = 0;
         printf("using default configuration\n");
     }
     
-    if(ret == 1)
+    //if(ret == 1)
     {
         // new frequency settings
         // re-tune required
@@ -104,7 +104,7 @@ int ret = 0;
 // we need different config files for root and user
 // otherwise a user would not be able to write a cfg file created by root
 #define CFG_FILENAME        "wb.cfg"
-#define CFG_FILENAME_ROOT   "wb_admin.cfg"
+#define CFG_FILENAME_ROOT   "/mnt/jffs2/wb_admin.cfg"
 
 // save config values in a readable format in file: wb.cfg
 void save_config()

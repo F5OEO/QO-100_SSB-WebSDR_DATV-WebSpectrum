@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <unistd.h>
-#include <rtl-sdr.h>
+//#include <rtl-sdr.h>
 #include "sdrplay.h"
 #include "audio.h"
 #include "wf_univ.h"
@@ -43,7 +43,7 @@
 #include "cat.h"
 #include "minitiouner.h"
 #include "setup.h"
-#include "plutodrv.h"
+#include "pluto.h"
 
 void stop_SDR();
 
@@ -250,12 +250,13 @@ void start_SDR()
         #endif
 	#else
 		// for NB transponder try RTLsdr first
+        #ifndef PLUTO
 		if(init_rtlsdr())
 		{
 		    hwtype = 2;
 		    samplesPerPacket = SAMPLES_PER_PASS;
 		}
-		
+		#endif
         #ifdef PLUTO
             if(init_pluto())
             {
@@ -286,7 +287,7 @@ void stop_SDR()
 #ifdef SDR_PLAY
     if(hwtype == 1) remove_SDRplay();
 #endif
-    if(hwtype == 2) rtlsdr_close(0);
+    //if(hwtype == 2) rtlsdr_close(0);
 }
 
 int main(int argc, char *argv[])
@@ -295,10 +296,10 @@ int main(int argc, char *argv[])
     isRunning();
     
     // look for the apache HTML path
-    searchHTMLpath();
+    //searchHTMLpath();
     
     // Install or Update the html files
-    installHTMLfiles();
+    //installHTMLfiles();
     
     // signal handler, mainly used if the user presses Ctrl-C
     struct sigaction sigact;

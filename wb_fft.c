@@ -53,13 +53,14 @@ void init_fwb()
 	sprintf(fn, "wb_wisdom");	// wisdom file for each capture rate
     
     int numofcpus = sysconf(_SC_NPROCESSORS_ONLN); // Get the number of logical CPUs.
+    #ifndef PLUTO
     if(numofcpus > 1)
     {
         printf("found %d cores, running FFT in multithreading mode\n",numofcpus);
         fftw_init_threads();
         fftw_plan_with_nthreads(numofcpus);
     }
-
+    #endif
 	fftw_import_wisdom_from_filename(fn);
   
     wb_din   = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * WB_FFT_LENGTH);
@@ -97,7 +98,7 @@ void wb_sample_processing(short *xi, short *xq, int numSamples)
                 static int divider = 50;
             #endif
             #ifdef PLUTO
-                static int divider = 50;
+                static int divider = 1;
             #endif
             if(++wftimes > divider)
             {
@@ -251,6 +252,7 @@ void wb_sample_processing(short *xi, short *xq, int numSamples)
                 
                 wftimes = 0;
             }
+            return ;
         }
     }
 }

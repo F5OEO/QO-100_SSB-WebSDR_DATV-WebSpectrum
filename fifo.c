@@ -33,7 +33,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <rtl-sdr.h>
+//#include <rtl-sdr.h>
 #include <time.h>
 #include <sys/time.h>
 #include <pthread.h>

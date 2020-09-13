@@ -29,7 +29,7 @@
 */
 
 #ifndef WIDEBAND
-
+#ifndef PLUTO
 #include <pthread.h>
 #include <alsa/asoundlib.h>
 #include <sndfile.h>
@@ -192,5 +192,5 @@ int init_soundcard(char *sndcard)
     }
     return 1;
 }
-
+#endif
 #endif

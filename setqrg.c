@@ -153,7 +153,9 @@ static int last_setIcomQRG = 0;
         if(hwtype == 2)
         {
             #ifndef WIDEBAND
+            #ifndef PLUTO
             rtlsetTunedQrgOffset(newrf);
+            #endif
             #endif
         }
      
@@ -180,7 +182,9 @@ void re_set_freq()
     if(hwtype == 2)
     {
         #ifndef WIDEBAND
+        #ifndef PLUTO
         reset_Qrg_RTLsdr();
+        #endif
         #endif
     }
     
